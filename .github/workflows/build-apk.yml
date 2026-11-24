@@ -26,8 +26,7 @@ jobs:
         run: |
           unzip -q RagdollFootballAndroid_Project.zip -d project
           PROJECT_DIR="$(dirname "$(find project -name settings.gradle -print -quit)")"
-          if [ "$PROJECT_DIR" = "project" ] || [ ! -f "$PROJECT_DIR/app/build.gradle" ]; then
-            echo "Android project structure not found"
+          if [ -z "$PROJECT_DIR" ] || [ ! -f "$PROJECT_DIR/app/build.gradle" ]; then
             exit 1
           fi
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
