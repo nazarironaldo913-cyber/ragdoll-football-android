@@ -1,0 +1,49 @@
+
+name: Build Ragdoll Football APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'RagdollFootballAndroid_Project.zip'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract Android project
+        run: |
+          unzip -q RagdollFootballAndroid_Project.zip -d project
+          PROJECT_DIR="$(dirname "$(find project -name settings.gradle -print -quit)")"
+          if [ "$PROJECT_DIR" = "project" ] || [ ! -f "$PROJECT_DIR/app/build.gradle" ]; then
+            echo "Android project structure not found"
+            exit 1
+          fi
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build APK
+        run: gradle assembleDebug
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ragdoll-Football-APK
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
+          
